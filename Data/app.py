@@ -2,37 +2,39 @@ import streamlit as st
 import pandas as pd
 import os
 
-# 📌 Ruta de la carpeta que contiene los CSV generados
-CARPETA_CSV = r"E:\Monitoreo\Data\csv_files"  # Cambia esta ruta a la tuya
+# 📌 Ruta fija de la carpeta donde se encuentran los archivos
+CARPETA_ARCHIVOS = r"E:\Monitoreo"
 
-# 🔄 Actualización automática cada 5 segundos
-st_autorefresh = st.experimental_rerun
+# 🔄 Recarga automática cada 5 segundos
 st_autorefresh = st.autorefresh(interval=5000, key="data_refresh")
 
-# Título
-st.title("📡 Monitoreo en Tiempo Real desde CSV")
+# Título de la app
+st.title("📡 Monitoreo en Tiempo Real desde Carpeta Fija")
 
 # Verificar si la carpeta existe
-if os.path.exists(CARPETA_CSV):
-    # Listar solo archivos CSV
-    archivos_csv = [f for f in os.listdir(CARPETA_CSV) if f.lower().endswith(".csv")]
+if os.path.exists(CARPETA_ARCHIVOS):
+    # Filtrar solo archivos Excel y CSV
+    archivos = [f for f in os.listdir(CARPETA_ARCHIVOS) if f.lower().endswith((".xlsx", ".xls", ".csv"))]
 
-    if archivos_csv:
-        # Selección de archivo
-        archivo_seleccionado = st.selectbox("📑 Selecciona un archivo CSV:", archivos_csv)
+    if archivos:
+        # Seleccionar archivo
+        archivo_seleccionado = st.selectbox("📑 Selecciona un archivo:", archivos)
 
         if archivo_seleccionado:
-            ruta_csv = os.path.join(CARPETA_CSV, archivo_seleccionado)
+            ruta_archivo = os.path.join(CARPETA_ARCHIVOS, archivo_seleccionado)
 
             try:
-                # Leer CSV
-                df = pd.read_csv(ruta_csv)
+                # Leer según formato
+                if archivo_seleccionado.lower().endswith((".xlsx", ".xls")):
+                    df = pd.read_excel(ruta_archivo)
+                else:
+                    df = pd.read_csv(ruta_archivo)
 
                 # Mostrar datos
                 st.subheader(f"📊 Datos - {archivo_seleccionado}")
                 st.dataframe(df)
 
-                # Mostrar gráfico si hay columnas numéricas
+                # Mostrar gráfico si hay datos numéricos
                 columnas_numericas = df.select_dtypes(include=['number'])
                 if not columnas_numericas.empty:
                     st.subheader("📈 Gráfico de datos numéricos")
@@ -42,6 +44,6 @@ if os.path.exists(CARPETA_CSV):
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {e}")
     else:
-        st.warning("📂 No se encontraron archivos CSV en la carpeta.")
+        st.warning("📂 No se encontraron archivos Excel o CSV en la carpeta.")
 else:
-    st.error(f"❌ La carpeta especificada no existe: {CARPETA_CSV}")
+    st.error(f"❌ La carpeta especificada no existe: {CARPETA_ARCHIVOS}")
